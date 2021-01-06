@@ -1,0 +1,19 @@
+.card-info-item-container{
+    width: 50%;
+    display: flex;
+    flex-direction: column;
+    padding: 10px 
+}
+
+.card-info-item-label{
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.card-info-item-value{
+    font-size: 18px;
+    border: 1px solid gray;
+    border-radius: 8px;
+    outline: none;
+    padding: 10px 30px 10px 30px;
+}

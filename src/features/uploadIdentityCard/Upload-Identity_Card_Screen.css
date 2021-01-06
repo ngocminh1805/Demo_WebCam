@@ -1,0 +1,72 @@
+.upload-image-container{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 0px 30px 0px;
+}
+
+.upload-image-title{
+    font-size: 30px;
+    font-weight: bold;
+    padding: 20px;
+   
+}
+.indentity-card-image{
+    width: 100%;
+    border: 1px solid gray;
+    margin-bottom: 10px;
+    
+}
+.upload-image-form-ctn{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center ;
+}
+
+.upload-image-form{
+    display: flex;
+    width: 50%;
+    flex-direction: column;
+    padding: 30px;
+    justify-content: center;
+    align-items: center;
+}
+ 
+.upload-image-form_title{
+    font-size: 18px;
+    font-weight: bold;
+    padding: 10px;
+    width: max-content;
+}
+
+.select-button{
+    padding: 10px 30px 10px 30px;
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 30px;
+    border-radius: 8px;
+    border: 1px solid gray;
+    outline: none;
+    cursor: pointer;
+    width: fit-content;
+}
+
+.input_file{
+    width: fit-content;
+    /* visibility: hidden; */
+    display: none;
+}
+
+.upload_image_button{
+    background-color:gray;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: 1px solid gray;
+    border-radius: 8px;
+    padding: 5px 30px 5px 30px;
+}

@@ -1,0 +1,17 @@
+.input_file{
+    width: fit-content;
+    /* visibility: hidden; */
+    display: none;
+}
+
+.upload_image_button{
+    background-color:gray;
+    color: white;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    border: 1px solid gray;
+    border-radius: 8px;
+    padding: 5px 30px 5px 30px;
+    cursor: pointer;
+}
