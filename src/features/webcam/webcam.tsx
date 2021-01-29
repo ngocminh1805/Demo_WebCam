@@ -1,161 +1,141 @@
 import * as React from "react";
 import Webcam from "react-webcam";
 import "./webcam.css";
-import {URL_FACE_VIDEO} from '../../helper/base'
+import { URL_FACE_VIDEO } from "../../helper/base";
 import axios from "axios";
+import { useHistory, useLocation } from "react-router-dom";
+import { userInfo } from "os";
 
-interface Props {}
-interface State {
-  screenshot: any;
-  tab: number;
-  recording: boolean;
-  recordedChunks: any;
-  guiId: string;
-  file_video: any
-  token:string
-}
+const WebCam = () => {
+  const [recording, setRecording] = React.useState(false);
+  const [recordedChunks, setRecordedChunks] = React.useState([]);
+  const [loadingVerifyFace, setLoadingVerifyFace] = React.useState(false);
 
-class WebCam extends React.PureComponent<Props, State> {
-  constructor(props: Props) {
-    super(props);
-    this.state = {
-      screenshot: null,
-      tab: 0,
-      recording: false,
-      recordedChunks: [],
-      guiId: "",
-      file_video: null,
-      token:''
-    };
-  }
-
-  componentDidMount() {
-    const GUIID = localStorage.getItem("UserInfo_ guiId") || "";
-    const Token = localStorage.getItem("Token") || '';
-    
-    this.setState({ guiId: GUIID, token:Token });
-  }
-
-  webcamRef = React.createRef<Webcam>();
-  mediaRecorderRef = React.createRef<MediaRecorder>();
-  handleClick = () => {
-    const screenshot = this.webcamRef.current?.getScreenshot();
-    console.log("SCREEN SHOT : ", screenshot);
-
-    this.setState({ screenshot });
-  };
-  /// ------------------------------------------------
-  onStartRecord = () => {
-    this.setState({ recording: true });
-    // @ts-ignore
-    this.mediaRecorderRef.current = new MediaRecorder(
-      // @ts-ignore
-      this.webcamRef.current?.stream,
-      {
-        // mimeType: "video/webm;codecs=h264",
-        mimeType: "video/webm;codecs=vp9",
-        // mimeType: "video/webm",
-      }
-    );
-    this.mediaRecorderRef.current.addEventListener(
-      "dataavailable",
-      this.handleDataAvailable
-    );
-    this.mediaRecorderRef.current.start();
-  };
-
-  /// --------------------------------------------------
+  const webcamRef = React.createRef<Webcam>();
+  const mediaRecorderRef = React.createRef<MediaRecorder>();
+  const history = useHistory();
+  const location = useLocation();
   //@ts-ignore
-  handleDataAvailable = ({ data }) => {
-    console.log('DATA :', data);
-    if (data.size > 0) {
-      this.setState({ recordedChunks: this.state.recordedChunks.concat(data) });
-    }
-  };
+  const guiId = location.state.guiId;
 
-  /// ----------------------------------------------
+  // const handleClick = () => {
+  //   const screenshot = webcamRef.current?.getScreenshot();
+  //   console.log("SCREEN SHOT : ", screenshot);
+  // };
 
-  onStopRecord = () => {
-    this.mediaRecorderRef.current?.stop();
-    this.setState({ recording: false });
-    // console.log("====================================");
-    // console.log("RECORDS_CHUNKS : ", this.state.recordedChunks);
-    // console.log("====================================");
+  /// ------------- start record -----------------------------------
+  const onStartRecord = React.useCallback(() => {
+    setRecording(true);
+    // setRecordedChunks([]);
+    //@ts-ignore
+    mediaRecorderRef.current = new MediaRecorder(webcamRef.current?.stream, {
+      mimeType: "video/webm;vp8",
+    });
+    mediaRecorderRef.current?.addEventListener(
+      "dataavailable",
+      handleDataAvailable
+    );
+    mediaRecorderRef.current?.start();
+  }, [webcamRef, setRecording, mediaRecorderRef]);
 
-    // const blob = new Blob(this.state.recordedChunks, {
-    //   type: "video/mp4",
-    // });
-    // const url = URL.createObjectURL(blob);
+  /// ------------ handle data ---------------------------
+  const handleDataAvailable = React.useCallback(
+    ({ data }) => {
+      if (data.size > 0) {
+        console.log("data...");
+        setRecordedChunks((prev) => prev.concat(data));
+      }
+    },
+    [setRecordedChunks]
+  );
 
-    // const file = new File(this.state.recordedChunks, "video.mp4", {
-    //   type: "video/mp4",
-    // });
+  /// --------- stop record -----------------------------
+  const onStopRecord = React.useCallback(() => {
+    //@ts-ignore
+    mediaRecorderRef.current.stop();
+    setRecording(false);
+  }, [mediaRecorderRef, webcamRef, setRecording]);
 
-    // console.log('====================================');
-    // console.log('Blob :', this.state.recordedChunks);
-    // console.log("VIDEO_URL :", url);
-    // console.log("FILE_VIEDO :", file);
-    // console.log("====================================");
-  };
+  // ------------------ dowload ------------------------------
 
-  // ----------------
-  handleDownload = () => {
-    if (this.state.recordedChunks.length) {
-      const blob = new Blob(this.state.recordedChunks, {
+  const handleDownload = React.useCallback(() => {
+    console.log("====================================");
+    console.log("RECORDED CHUNKS :", recordedChunks);
+    console.log("====================================");
+    if (recordedChunks.length) {
+      const blob = new Blob(recordedChunks, {
         type: "video/mp4",
       });
       const url = URL.createObjectURL(blob);
-      
-
-      const file = new File(this.state.recordedChunks, "video.mp4", {
-        type: "video/mp4",
-      });
-  
-      console.log('====================================');
-      console.log('Blob :', this.state.recordedChunks);
-      console.log("VIDEO_URL :", url);
-      console.log("FILE_VIEDO :", file);
-      console.log("====================================");
-
       const a = document.createElement("a");
       document.body.appendChild(a);
-      // @ts-ignore
-      // a.style = "display: none";
-      // a.href = url;
-      // a.download = "react-webcam.mp4";
-      // a.click();
-      // window.URL.revokeObjectURL(url);
-      // this.setState({ recordedChunks: [] });
-      this.playVideo();
-      this.verifyFace();
-       this.setState({ recordedChunks: [] });
+      //@ts-ignore
+      a.style = "display: none";
+      a.href = url;
+      a.download = "react-webcam-stream-capture.mp4";
+      a.click();
+      window.URL.revokeObjectURL(url);
+      setRecordedChunks([]);
     }
+  }, [recordedChunks]);
+
+  // --------------------- continue --------------------------
+
+  const handleContinue = React.useCallback(() => {
+    console.log("====================================");
+    console.log("RECORDED CHUNKS :", recordedChunks);
+    console.log("====================================");
+
+    // if (recordedChunks.length) {
+    //   playVideo();
+    //   verifyFace();
+    // }
+    const file = new File(recordedChunks, "video.mp4", {
+      type: "video/mp4",
+    });
+    console.log("====================================");
+    console.log("FILE :", file);
+    //@ts-ignore
+    console.log("USER INFO :", location.state.userinfo);
+
+    console.log("====================================");
+
+    history.push("/finish", {
+      file: file,
+      //@ts-ignore
+      userinfo: location.state.userinfo,
+      //@ts-ignore
+      frontFile: location.state.frontFile,
+      //@ts-ignore
+      backFile: location.state.backFile,
+      guiId:guiId
+    });
+  }, [recordedChunks]);
+
+  //
+  const renderButton = () => {
+    // if (recording) {
+    //   return (
+    //     <button className="camera_button" onClick={onStopRecord}>
+    //       stop record
+    //     </button>
+    //   );
+    // } else {
+      return (
+        <button className="camera_button" onClick={captureVideo}>
+          {recording? 'Đang chụp khuôn mặt ...' : 'Chụp khuôn mặt'}
+        </button>
+      );
+    // }
   };
 
   //
-  renderButton = () => {
-    if (this.state.recording) {
-      return (
-        <button className="camera_button" onClick={this.onStopRecord}>
-          stop record
-        </button>
-      );
-    } else {
-      return (
-        <button className="camera_button" onClick={this.captureVideo}>
-          start record
-        </button>
-      );
-    }
-  };
 
-  //
-
-  renderDowloadBtn = () => {
-    if (this.state.recordedChunks.length > 0) {
+  const renderDowloadBtn = () => {
+    if (recordedChunks.length > 0) {
       return (
-        <button className="camera_button" onClick={this.handleDownload}>
-          Download
+        <button className="camera_button" onClick={handleContinue}>
+          Tiếp tục
         </button>
       );
     }
@@ -163,36 +143,37 @@ class WebCam extends React.PureComponent<Props, State> {
 
   // ---------------------- Quay video --------------------------
 
-  captureVideo = () => {
-    this.onStartRecord();
-    // setTimeout(this.onStopRecord, 3500);
-    // this.handleDownload();
+  const captureVideo = () => {
+    onStartRecord();
+    setTimeout(onStopRecord, 3500);
+    // handleDownload();
   };
 
-  // 
-
-  playVideo=()=>{
-    var video = document.getElementById('preview-video');
-    const blob = new Blob(this.state.recordedChunks, {
+  const playVideo = () => {
+    var video = document.getElementById("preview-video");
+    const blob = new Blob(recordedChunks, {
       type: "video/mp4",
     });
     const url = URL.createObjectURL(blob);
     //@ts-ignore
     video.src = url;
-    console.log('LINK_BLOB_VIDEO_PLAY: ', url);
-    
-      //@ts-ignore
-    video.load();
-      //@ts-ignore
-    video.onloadeddata = function() {
-        //@ts-ignore
-        video.play();
-    }
-  }
+    console.log("LINK_BLOB_VIDEO_PLAY: ", url);
 
-  verifyFace = async () => {
+    //@ts-ignore
+    video.load();
+    //@ts-ignore
+    video.onloadeddata = function () {
+      //@ts-ignore
+      video.play();
+    };
+  };
+
+  const verifyFace = async () => {
+    setLoadingVerifyFace(true);
     var formData = new FormData();
-    const file = new File(this.state.recordedChunks, "video.mp4", {
+    const token = localStorage.getItem("Token");
+    const guiId = localStorage.getItem("UserInfo_ guiId") || "";
+    const file = new File(recordedChunks, "video.mp4", {
       type: "video/mp4",
     });
 
@@ -202,49 +183,44 @@ class WebCam extends React.PureComponent<Props, State> {
       `CaptureVideo_${new Date().getTime()}.mp4`
     );
 
-    formData.append('GuidID',this.state.guiId);
+    formData.append("GuidID", guiId);
 
     const config = {
       headers: {
         // "Content-Type": "application/json",
         "content-type": "multipart/form-data",
-        Authorization: `Bearer ${this.state.token || ""}`,
+        Authorization: `Bearer ${token || ""}`,
       },
     };
 
-    await axios
-    .post(URL_FACE_VIDEO, formData, config)
-    .then((response) => {
-      console.log('RESPONSE : ', response);
-      
-    })
-  }
+    await axios.post(URL_FACE_VIDEO, formData, config).then((response) => {
+      console.log("RESPONSE : ", response);
+      setLoadingVerifyFace(false);
+      // history.push('/finish')
+    });
+  };
 
-  render() {
-    console.log("====================================");
-    console.log("GUIID :", this.state.guiId);
-    console.log("====================================");
-    return (
-      <div className="webcam_ctn">
-        <Webcam
-          height={720}
-          width={1024}
-          mirrored={true}
-          screenshotFormat="image/jpeg"
-          ref={this.webcamRef}
-        />
-        <div>
-          <button className="camera_button" onClick={this.handleClick}>
-            Capture
-          </button>
-          {this.renderButton()}
-          {this.renderDowloadBtn()}
-        </div>
-        <img src={this.state.screenshot} />
-        <video id = 'preview-video'></video>
+  return (
+    <div className="webcam_ctn">
+      <Webcam
+        height={720}
+        width={1024}
+        mirrored={true}
+        screenshotFormat="image/jpeg"
+        ref={webcamRef}
+      />
+      <div>
+        {/* <button className="camera_button" onClick={handleClick}>
+          Capture
+        </button> */}
+        {renderButton()}
+        {renderDowloadBtn()}
       </div>
-    );
-  }
-}
+
+      {/* <img src={screenshot} /> */}
+      <video id="preview-video"></video>
+    </div>
+  );
+};
 
 export default WebCam;

@@ -1,44 +1,29 @@
 import * as React from "react";
 import "./LoginScreen.css";
 import axios from "axios";
-import {useHistory} from 'react-router-dom'
-// import { Route } from 'react-router-dom'
 import { URL_GET_TOKEN, publicKey } from "../../helper/base";
+import { useHistory } from "react-router-dom";
 
-interface Props {}
-interface State {
-  userName: string;
-  password: string;
-}
+const LoginScreen = () => {
+  const [userName, setUserName] = React.useState("");
+  const [passWord, setPassWord] = React.useState("");
 
-class LoginScreen extends React.PureComponent<Props, State> {
-  constructor(props: Props) {
-    super(props);
+  const history = useHistory();
 
-    this.state = {
-      userName: "",
-      password: "",
-    };
-  }
- 
   // logo
-  HyperLogo = require("../../assets/hyper-logo.png").default;
+  const HyperLogo = require("../../assets/hyper-logo.png").default;
 
   // ----------------- login --------------------------
 
-  onLogin = () => {
-    console.log(
-      "GET TOKEN: ",
-      this.state.userName + "---" + this.state.password
-    );
-    if (this.validate(this.state.userName, this.state.password)) {
-      this.getToken();
-      
+  const onLogin = () => {
+    console.log("GET TOKEN: ", userName + "---" + passWord);
+    if (validate(userName, passWord)) {
+      getToken();
     }
   };
   // ---------------- validate form -----------------------
 
-  validate = (userName: string, password: string) => {
+  const validate = (userName: string, password: string) => {
     if (userName.length == 0 || password.length == 0) {
       alert("Vui lòng nhập đầy đủ thông tin");
       return false;
@@ -49,7 +34,7 @@ class LoginScreen extends React.PureComponent<Props, State> {
   };
 
   // ---------------- get token -------------------------
-  getToken = async () => {
+  const getToken = async () => {
     console.log("test_get_token: ", URL_GET_TOKEN);
 
     // Platform.OS === 'android' &&  ToastAndroid.show("get_api: "+ URL_GET_TOKEN, ToastAndroid.SHORT);
@@ -68,12 +53,8 @@ class LoginScreen extends React.PureComponent<Props, State> {
         if (rs?.Code === 200) {
           const token = rs?.Token;
           console.log("Token_LoginScreen: ", token);
-          localStorage.setItem('Token',token);
-          const history = useHistory()
-          history.push('/upload-identity-card')
-          
-          
-          
+          localStorage.setItem("Token", token);
+          history.push("/upload-identity-card");
         } else {
         }
       })
@@ -82,37 +63,30 @@ class LoginScreen extends React.PureComponent<Props, State> {
         console.log("VerifyLogin: " + error);
       });
   };
-
-  render() {
-    return (
-      <div className="login_container">
-        <img src={this.HyperLogo} className="login_logo" />
-        <div className="login_form">
-          <span className="login_title">Nhập Thông Tin</span>
-          <span className="imput_field_label">Tên đăng nhập</span>
-          <input
-            className="input_field"
-            placeholder="vui lòng nhập tên đăng nhập"
-            onChange={(event) =>
-              this.setState({ userName: event.target.value })
-            }
-          ></input>
-          <span className="imput_field_label">Mật Khẩu</span>
-          <input
-            className="input_field"
-            placeholder="vui lòng nhập mật khẩu"
-            onChange={(event) =>
-              this.setState({ password: event.target.value })
-            }
-            type="password"
-          ></input>
-          <button className="login_btn" onClick={this.onLogin}>
-            Đăng nhập
-          </button>
-        </div>
+  return (
+    <div className="login_container">
+      <img src={HyperLogo} className="login_logo" />
+      <div className="login_form">
+        <span className="login_title">Nhập Thông Tin</span>
+        <span className="imput_field_label">Tên đăng nhập</span>
+        <input
+          className="input_field"
+          placeholder="vui lòng nhập tên đăng nhập"
+          onChange={(event) => setUserName(event.target.value)}
+        ></input>
+        <span className="imput_field_label">Mật Khẩu</span>
+        <input
+          className="input_field"
+          placeholder="vui lòng nhập mật khẩu"
+          onChange={(event) => setPassWord(event.target.value)}
+          type="password"
+        ></input>
+        <button className="login_btn" onClick={onLogin}>
+          Đăng nhập
+        </button>
       </div>
-    );
-  }
-}
+    </div>
+  );
+};
 
 export default LoginScreen;
